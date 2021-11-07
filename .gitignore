@@ -1,6 +1,9 @@
 # Env files
 *.env
 
+# Mysql volume for permanent data
+mysql-data/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
