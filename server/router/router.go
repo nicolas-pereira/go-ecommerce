@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/nicolas-pereira/go-ecommerce/server/config"
 	"github.com/nicolas-pereira/go-ecommerce/server/database"
 )
 
@@ -26,8 +25,7 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	var tables int
-	err := database.Handler.QueryRow("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA =?", config.Database.Dbname).Scan(&tables)
+	tables, err := database.DatabaseTableCount()
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
