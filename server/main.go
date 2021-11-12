@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -10,13 +11,11 @@ import (
 )
 
 func main() {
-	err := config.GetConfig()
-	if err != nil {
-		log.Println(err.Error())
+	if config.Database() == nil {
+		log.Println(errors.New("config: can't read database configuration").Error())
 	}
-	err = database.InitDb()
-	if err != nil {
-		log.Println(err.Error())
+	if database.Handler() == nil {
+		log.Println(errors.New("database: can't connect to database").Error())
 	}
 	r := router.NewRouter()
 	log.Fatal(http.ListenAndServe(":8080", r))
