@@ -15,12 +15,19 @@ type DbConfig struct {
 
 const fname = "config.json"
 
-var Database DbConfig
+var database *DbConfig
 
-func GetConfig() error {
+func init() {
 	data, err := ioutil.ReadFile(fname)
 	if err != nil {
-		return err
+		return
 	}
-	return json.Unmarshal(data, &Database)
+	err = json.Unmarshal(data, &database)
+	if err != nil {
+		database = nil
+	}
+}
+
+func Database() *DbConfig {
+	return database
 }
