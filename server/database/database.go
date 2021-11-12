@@ -9,22 +9,27 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var Handler *sql.DB
+var handler *sql.DB
 
-func InitDb() error {
+func init() {
 	var err error
-	Handler, err = sql.Open("mysql", fmt.Sprintf("%v:%v@tcp(%v:%v)/%v",
-		config.Database.Username,
-		config.Database.Password,
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.Dbname))
+	handler, err = sql.Open("mysql", fmt.Sprintf("%v:%v@tcp(%v:%v)/%v",
+		config.Database().Username,
+		config.Database().Password,
+		config.Database().Host,
+		config.Database().Port,
+		config.Database().Dbname))
 	if err != nil {
-		return err
+		handler = nil
 	}
-	err = Handler.Ping()
-	if err != nil {
-		return err
-	}
-	return err
+}
+
+func Handler() *sql.DB {
+	return handler
+}
+
+func DatabaseTableCount() (int, error) {
+	var tables int
+	err := handler.QueryRow("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA =?", config.Database().Dbname).Scan(&tables)
+	return tables, err
 }
