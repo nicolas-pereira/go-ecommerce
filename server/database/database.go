@@ -33,9 +33,9 @@ func Handler() *sql.DB {
 func DatabaseTableCount() (int, error) {
 	var tables int
 	query := "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA =?"
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 3*time.Second)
 
-	defer cancelfunc()
+	defer cancelFunc()
 	err := handler.QueryRowContext(ctx, query, config.Database().Dbname).Scan(&tables)
 	return tables, err
 }
@@ -59,19 +59,42 @@ func (e EUR) Multiply(f float64) EUR {
 func (e EUR) String() string {
 	f := float64(e)
 	f = f / 100
-	return fmt.Sprintf("$%.2f", f)
+	return fmt.Sprintf("%.2f €", f)
 }
 
 // Insert product with given name, description and price, returns inserted product ID
 func PostProduct(name string, description string, price float64) (int64, error) {
 	query := "INSERT INTO product (name, description, price, fk_category_id) VALUES (?, ?, ?, 1)"
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 3*time.Second)
 
-	defer cancelfunc()
+	defer cancelFunc()
 
 	res, err := handler.ExecContext(ctx, query, name, description, ToEUR(price))
 	if err != nil {
 		return -1, err
 	}
 	return res.LastInsertId()
+}
+
+type Product struct {
+	Id          int
+	Name        string
+	Description string
+	Available   bool
+	CategoryId  int
+	Price       EUR
+}
+
+func GetProductById(id int) (*Product, error) {
+	var product Product
+	query := "SELECT id, name, description, available, fk_category_id, price FROM product WHERE id = ?"
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 3*time.Second)
+
+	defer cancelFunc()
+
+	err := handler.QueryRowContext(ctx, query, id).Scan(&product.Id, &product.Name, &product.Description, &product.Available, &product.CategoryId, &product.Price)
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
 }
